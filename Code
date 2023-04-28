@@ -1,0 +1,1598 @@
+#Gap filling the Marsaxlokk Meteorological Variables through the use of the Kordin or Delimara datasets.
+# loading the marsaxlokk dataset
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(devtools)
+library(forecast)
+library(IRISSeismic)
+#plots and tests for the dataset without the erroneous values 
+data_meteo <- read.csv("C:/Users/Nicole/Downloads/data_meteo.csv", sep=";")
+View(data_meteo)
+head(data_meteo)
+data_meteo<-subset(data_meteo, atm_press != "9999.99")
+data_meteo<-subset(data_meteo, humidity != "999")
+data_meteo<-subset(data_meteo, wind_dir != "999")
+data_meteo<-subset(data_meteo, wind_speed != "99.9")
+data_meteo<-subset(data_meteo, air_temp != "56.2")
+data_meteo<-subset(data_meteo, air_temp != "55.1")
+data_meteo<-subset(data_meteo, air_temp != "52.6")
+data_meteo<-subset(data_meteo, air_temp != "50.5")
+data_meteo<-subset(data_meteo, air_temp != "48.9")
+data_meteo<-subset(data_meteo, air_temp != "45.4")
+data_meteo<-subset(data_meteo, air_temp != "45.1")
+data_meteo<-subset(data_meteo, air_temp != "44.9")
+data_meteo<-subset(data_meteo, air_temp != "43.8")
+data_meteo<-subset(data_meteo, air_temp != "41.9")
+data_meteo<-subset(data_meteo, air_temp != "40.6")
+data_meteo$air_temp[627047:627443]<-NA
+#these temperatures were removed because they occurred in 2022-03-19 19:22 till 19:32 which indicates that these values were erroneous values
+plot(data_meteo$air_temp,type='l')
+View(data_meteo)
+
+# Formatting the data in a proper way
+data_meteo$date_time<- strptime(data_meteo$date_time, "%Y-%m-%d %H:%M:%S")
+data_meteo$date_time<- as.POSIXct(data_meteo$date_time)
+str(data_meteo)
+data_sealevel <- read.csv("C:/Users/Nicole/Downloads/data_sealevel.csv", sep=";")
+data_sealevel<-data_sealevel[!rowSums(data_sealevel>51),]
+View(data_sealevel)
+plot(data_sealevel$h1,type='l')
+# Formatting the data in a proper way
+data_sealevel$date_time<- strptime(data_sealevel$date_time, "%Y-%m-%d %H:%M:%S")
+data_sealevel$date_time<- as.POSIXct(data_sealevel$date_time)
+str(data_sealevel)
+date_time = seq(
+  from = as.POSIXct("2021-02-19 12:17"),
+  to =  as.POSIXct("2022-08-13 14:26"), 
+  by = "mins"
+)
+library(dplyr)
+dat.new<-as.data.frame(date_time)
+ddata_meteo<-as.data.frame(data_meteo)
+View(dat.new)
+try<-left_join(dat.new,ddata_meteo,by="date_time",all=TRUE)
+View(try)
+ddata_sealevel<-as.data.frame(data_sealevel)
+try2<-left_join(dat.new,ddata_sealevel,by="date_time",all=TRUE)
+View(try2)
+combinedd<-merge(try,try2,by="date_time",all=TRUE)
+View(combinedd)
+combinedd$date_time<- strptime(combinedd$date_time, "%Y-%m-%d %H:%M:%S")
+combinedd$date_time<- as.POSIXct(combinedd$date_time)
+str(combinedd)
+
+#loading delimara meteo dataset
+Delimara_Meteo <- read.csv("C:/Users/Nicole/Downloads/Delimara Meteo.csv", sep=";")
+View(Delimara_Meteo)
+#removing the erroneous values from the wind variables
+Delimara_Meteo<-subset(Delimara_Meteo, wind_dir != "999")
+Delimara_Meteo<-subset(Delimara_Meteo, wind_speed != "99.9")
+Delimara_Meteo<-subset(Delimara_Meteo, wind_gust != "99.9")
+View(Delimara_Meteo)
+date_time = seq(
+  from = as.POSIXct("2021-02-19 12:17"),
+  to =  as.POSIXct("2022-08-13 14:26"), 
+  by = "mins"
+)
+library(dplyr)
+dat.new<-as.data.frame(date_time)
+Delimara_Meteo$date_time<- strptime(Delimara_Meteo$date_time, "%Y-%m-%d %H:%M:%S")
+Delimara_Meteo$date_time<- as.POSIXct(Delimara_Meteo$date_time)
+str(Delimara_Meteo)
+dDelimara<-as.data.frame(Delimara_Meteo)
+View(dDelimara)
+tryDelimara<-left_join(dat.new,dDelimara,by="date_time",all=TRUE)
+View(tryDelimara)
+
+# Loading kordin dataset so as to continue filling in the meteo gaps
+Kordin_Meteo <- read.csv("C:/Users/Nicole/Downloads/Kordin Meteo.csv", sep=";")
+View(Kordin_Meteo)
+#removing the erroneous values from the wind variables
+Kordin_Meteo<-subset(Kordin_Meteo, wind_dir != "999")
+Kordin_Meteo<-subset(Kordin_Meteo, wind_speed != "99.9")
+Kordin_Meteo<-subset(Kordin_Meteo, wind_gust != "99.9")
+Kordin_Meteo<-subset(Kordin_Meteo, humidity != "999")
+Kordin_Meteo<-subset(Kordin_Meteo, atm_press != "9999.99")
+View(Kordin_Meteo)
+date_time = seq(
+  from = as.POSIXct("2021-02-19 12:17"),
+  to =  as.POSIXct("2022-08-13 14:26"), 
+  by = "mins"
+)
+library(dplyr)
+dat.new<-as.data.frame(date_time)
+Kordin_Meteo$date_time<- strptime(Kordin_Meteo$date_time, "%Y-%m-%d %H:%M:%S")
+Kordin_Meteo$date_time<- as.POSIXct(Kordin_Meteo$date_time)
+str(Kordin_Meteo)
+kKordin<-as.data.frame(Kordin_Meteo)
+View(kKordin)
+tryKordin<-left_join(dat.new,kKordin,by="date_time",all=TRUE)
+View(tryKordin)
+combmerg<-left_join(combinedd,tryDelimara,by="date_time",all=TRUE)
+combfull<-left_join(combmerg,tryKordin,by="date_time",all=TRUE)
+View(combfull)
+library(rWind)
+combfull$marsaxlokku<-ds2uv(combfull$wind_dir.x, combfull$wind_speed.x)[,1]
+combfull$marsaxlokkv<-ds2uv(combfull$wind_dir.x,combfull$wind_speed.x)[,2]
+combfull$delimarau<-ds2uv(combfull$wind_dir.y, combfull$wind_speed.y)[,1]
+combfull$delimarav<-ds2uv(combfull$wind_dir.y,combfull$wind_speed.y)[,2]
+combfull$kordinu<-ds2uv(combfull$wind_dir, combfull$wind_speed)[,1]
+combfull$kordinv<-ds2uv(combfull$wind_dir,combfull$wind_speed)[,2]
+#renaming the columns
+combfull <- combfull %>%
+  rename(Marsaxlokk_Atmpress = atm_press.x)
+combfull <- combfull %>%
+  rename(Delimara_Atmpress = atm_press.y)
+combfull <- combfull %>%
+  rename(Kordin_Atmpress = atm_press)
+fit2 <- tslm(atm_press.x ~ atm_press.y,data=ts(combfull))
+fit.c <- coef(fit2)
+fit.c
+summary(fit2)
+View(as.data.frame(fit2$residuals))
+
+plot(fit3$residuals)
+fit3 <- tslm(atm_press.x ~ atm_press,data=ts(combfull))
+fitt.c <- coef(fit3)
+fitt.c
+summary(fit3)
+combfull$predDelimara <- fit.c[1] + fit.c[2]*combfull$atm_press.y#+mse(fit2)
+combfull$predKordin <- fitt.c[1] + fitt.c[2]*combfull$atm_press#+mse(fit3)
+cototal <- combfull %>%
+  mutate( 
+    atmpresstotalD  = ifelse(is.na(atm_press.x), c(predKordin,predDelimara), c(atm_press.x,predKordin,predDelimara)),
+    atmpresstotalK  = ifelse(is.na(atm_press.x), c(predDelimara,predKordin), c(atm_press.x,predKordin,predDelimara)),
+    finalatmp=ifelse(is.na(atmpresstotalD),atmpresstotalK,c(atmpresstotalD,atmpresstotalK)))
+View(cototal)
+predictedmarsaxlokk<-cototal[,c(1:5,7:8,25)]
+View(predictedmarsaxlokk)
+n_miss(predictedmarsaxlokk$finalatmp)
+
+#predicting other meteorological variables
+# Construct linear model based on non-NA pairs
+combmerg<-left_join(combinedd,tryDelimara,by="date_time",all=TRUE)
+combfull<-left_join(combmerg,tryKordin,by="date_time",all=TRUE)
+View(combfull)
+fit2h <- tslm(humidity.x ~ humidity.y,data=ts(combfull))
+fit.ch <- coef(fit2h)
+summary(fit2h)
+fit3h <- tslm(humidity.x ~ humidity,data=ts(combfull))
+fitt.ch <- coef(fit3h)
+summary(fit3h)
+combfull$predDelimarah <- fit.ch[1] + fit.ch[2]*combfull$humidity.y
+combfull$predKordinh <- fitt.ch[1] + fitt.ch[2]*combfull$humidity
+View(combfull)
+humidtotal <- combfull %>%
+  mutate(humiditytotalK  = ifelse(is.na(humidity.x), c(predKordinh,predDelimarah), c(humidity.x,predKordinh,predDelimarah)),
+         humiditytotalD  = ifelse(is.na(humidity.x), c(predDelimarah,predKordinh), c(humidity.x,predKordinh,predDelimarah)),
+         finalhumidity=ifelse(is.na(humiditytotalD),humiditytotalK,c(humiditytotalD,humiditytotalK)))
+humiditypredictedmarsaxlokk<-humidtotal[,c(1:5,8,25)]
+View(humiditypredictedmarsaxlokk)
+
+#predicting other meteorological variables
+# Construct linear model based on non-NA pairs
+combmerg<-left_join(combinedd,tryDelimara,by="date_time",all=TRUE)
+combfull<-left_join(combmerg,tryKordin,by="date_time",all=TRUE)
+View(combfull)
+fit2at <- tslm(air_temp.x ~ air_temp.y,data=ts(combfull))
+fit.cat <- coef(fit2at)
+fit.cat
+summary(fit2at)
+fit3at <- tslm(air_temp.x ~ air_temp,data=ts(combfull))
+fitt.cat <- coef(fit3at)
+fitt.cat
+summary(fit3at)
+combfull$predDelimaraat <- fit.cat[1] + fit.cat[2]*combfull$air_temp.y
+combfull$predKordinat <- fitt.cat[1] + fitt.cat[2]*combfull$air_temp
+View(combfull)
+attotal <- combfull %>%
+  mutate( 
+    attotalK  = ifelse(is.na(air_temp.x), c(predKordinat,predDelimaraat), c(air_temp.x,predKordinat,predDelimaraat)),
+    attotalD  = ifelse(is.na(air_temp.x), c(predDelimaraat,predKordinat), c(air_temp.x,predKordinat,predDelimaraat)),
+    finalairtemp=ifelse(is.na(attotalD),attotalK,c(attotalD,attotalK)))
+airtemppredictedmarsaxlokk<-attotal[,c(1:4,8,25)]
+View(airtemppredictedmarsaxlokk)
+tillnow<-c(combinedd[,c(1,8)],predictedmarsaxlokk[,c(1,8)],humiditypredictedmarsaxlokk[,c(1,7)],airtemppredictedmarsaxlokk[,c(1,6)])
+#wind
+View(combfull)
+library(forecast)
+fit2wspeed <- tslm(marsaxlokku ~delimarau,data=ts(combfull))
+fit.cwspeed <- coef(fit2wspeed)
+fit.cwspeed
+summary(fit2wspeed)
+fit3wspeed <- tslm(marsaxlokku ~ kordinu,data=ts(combfull))
+fitt.cwspeed <- coef(fit3wspeed)
+combfull$predDelimarawspeed <- fit.cwspeed[1] + fit.cwspeed[2]*combfull$delimarau
+combfull$predKordinwspeed <- fitt.cwspeed[1] + fitt.cwspeed[2]*combfull$kordinu
+View(combfull)
+wspeedtotal <- combfull %>%
+  mutate( 
+    wspeedtotalD  = ifelse(is.na(marsaxlokku), c(predDelimarawspeed,predKordinwspeed), c(marsaxlokku,predKordinwspeed,predDelimarawspeed)),
+    wspeedtotalK  = ifelse(is.na(marsaxlokku), c(predKordinwspeed,predDelimarawspeed), c(marsaxlokku,predKordinwspeed,predDelimarawspeed)),
+    finalwspeed=ifelse(is.na(wspeedtotalD),wspeedtotalK,c(wspeedtotalD,wspeedtotalK)))
+wspeedpredictedmarsaxlokk<-wspeedtotal[,c(1,3:4,8,31)]
+tillnow<-c(combinedd[,c(1,8)],predictedmarsaxlokk[,c(1,8)],humiditypredictedmarsaxlokk[,c(1,7)],airtemppredictedmarsaxlokk[,c(1,6)],wspeedpredictedmarsaxlokk[,c(1,5)])
+#Wind gust
+fit2wgust <- tslm(wind_gust.x ~ wind_gust.y,data=ts(combfull))
+fit.cwgust <- coef(fit2wgust)
+fit.cwgust
+summary(fit2wgust)
+fit3wgust <- tslm(wind_gust.x ~ wind_gust,data=ts(combfull))
+fitt.cwgust <- coef(fit3wgust)
+fitt.cwgust
+summary(fit3wgust)
+combfull$predDelimarawgust <- fit.cwgust[1] + fit.cwgust[2]*combfull$wind_gust.y
+combfull$predKordinwgust <- fitt.cwgust[1] + fitt.cwgust[2]*combfull$wind_gust
+wgusttotal <- combfull %>%
+  mutate( 
+    wgusttotalD  = ifelse(is.na(wind_gust.x), c(predDelimarawgust,predKordinwgust), c(wind_gust.x,predKordinwgust,predDelimarawgust)),
+    wgusttotalK  = ifelse(is.na(wind_gust.x), c(predKordinwgust,predDelimarawgust), c(wind_gust.x,predKordinwgust,predDelimarawgust)),
+    finalwgust=ifelse(is.na(wgusttotalD),wgusttotalK,c(wgusttotalD,wgusttotalK)))
+wgustpredictedmarsaxlokk<-wgusttotal[,c(1,4,8,33)]
+View(wgustpredictedmarsaxlokk)
+tillnow<-c(tillnow,wgustpredictedmarsaxlokk[,c(1,4)])
+tillnow<-as.data.frame(tillnow)
+View(tillnow)
+tillnow<-as.data.frame(tillnow[,c(2:7,9)])
+View(tillnow)
+#wind v component 
+fit2wdir <- tslm(marsaxlokkv ~ delimarav,data=ts(combfull))
+fit.cwdir <- coef(fit2wdir)
+fit.cwdir
+summary(fit2wdir)
+fit3wdir <- tslm(marsaxlokkv ~ kordinv,data=ts(combfull))
+fitt.cwdir <- coef(fit3wdir)
+fitt.cwdir
+summary(fit3wdir)
+combfull$predDelimarawdir <- fit.cwdir[1] + fit.cwdir[2]*(combfull$delimarav)
+combfull$predKordinwdir <- fitt.cwdir[1] + fitt.cwdir[2]*(combfull$kordinv)
+wdirtotal <- combfull %>%
+  mutate(
+    wdirtotalD  = ifelse(is.na((marsaxlokkv)), c(predDelimarawdir,predKordinwdir), c((marsaxlokkv),predKordinwdir,predDelimarawdir)),
+    wdirtotalK  = ifelse(is.na((marsaxlokkv)), c(predKordinwdir,predDelimarawdir), c((marsaxlokkv),predKordinwdir,predDelimarawdir)),
+    finalwdir=ifelse(is.na(wdirtotalD),wdirtotalK,c(wdirtotalD,wdirtotalK)))
+View(wdirtotal)
+wdirpredictedmarsaxlokk<-wdirtotal[,c(1,8,33)]
+#obtaining final meteo data
+tillnow<-c(tillnow,wdirpredictedmarsaxlokk[,c(1,3)])
+tillnow<-as.data.frame(tillnow)
+View(tillnow)
+tillnow<-as.data.frame(tillnow[,c(1:7,9)])
+View(tillnow)
+
+#final Data with predicted meteorological values
+library(readr)
+FinalPredictedMarsaxlokkmeteo<-write.csv(as.data.frame(tillnow),"C:/Users/Nicole/OneDrive/Desktop/FinalPredictedMarsaxlokkmeteo.csv")
+FinalPredictedMarsaxlokkmeteo <- read_csv("C:/Users/Nicole/OneDrive/Desktop/FinalPredictedMarsaxlokkmeteo.csv")
+#Gap filling the remaining Marsaxlokk Meteorological Variables through rolling average method
+library(readr)
+FinalPredictedMarsaxlokkmeteo$gap_fill <- rollapply(
+  data    = FinalPredictedMarsaxlokkmeteo$finalatmp,
+  width   = 14400, #basing the rolling average using prior 10 days data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+FinalPredictedMarsaxlokkmeteo$Fullatmp <- ifelse(is.na(FinalPredictedMarsaxlokkmeteo$finalatmp),FinalPredictedMarsaxlokkmeteo$gap_fill, c(FinalPredictedMarsaxlokkmeteo$finalatmp,FinalPredictedMarsaxlokkmeteo$gap_fill))
+FinalPredictedMarsaxlokkmeteo$gap_fill <- rollapply(
+  data    = FinalPredictedMarsaxlokkmeteo$finalhumidity,
+  width   = 14400, #basing the rolling average using prior 10 days data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+FinalPredictedMarsaxlokkmeteo$Fullhumidity <- ifelse(is.na(FinalPredictedMarsaxlokkmeteo$finalhumidity),FinalPredictedMarsaxlokkmeteo$gap_fill, c(FinalPredictedMarsaxlokkmeteo$finalhumidity,FinalPredictedMarsaxlokkmeteo$gap_fill))
+View(FinalPredictedMarsaxlokkmeteo)
+FinalPredictedMarsaxlokkmeteo$gap_fill <- rollapply(
+  data    = FinalPredictedMarsaxlokkmeteo$finalairtemp,
+  width   = 14400, #basing the rolling average using prior 10 days data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+FinalPredictedMarsaxlokkmeteo$Fullairtemp <- ifelse(is.na(FinalPredictedMarsaxlokkmeteo$finalairtemp),FinalPredictedMarsaxlokkmeteo$gap_fill, c(FinalPredictedMarsaxlokkmeteo$finalairtemp,FinalPredictedMarsaxlokkmeteo$gap_fill))
+FinalPredictedMarsaxlokkmeteo$gap_fill <- rollapply(
+  data    = FinalPredictedMarsaxlokkmeteo$finalwspeed,
+  width   = 14400, #basing the rolling average using prior 10 days data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+FinalPredictedMarsaxlokkmeteo$Fullwspeed <- ifelse(is.na(FinalPredictedMarsaxlokkmeteo$finalwspeed),FinalPredictedMarsaxlokkmeteo$gap_fill, c(FinalPredictedMarsaxlokkmeteo$finalwspeed,FinalPredictedMarsaxlokkmeteo$gap_fill))
+FinalPredictedMarsaxlokkmeteo$gap_fill <- rollapply(
+  data    = FinalPredictedMarsaxlokkmeteo$finalwgust,
+  width   = 14400, #basing the rolling average using prior 10 days data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+FinalPredictedMarsaxlokkmeteo$Fullwgust<- ifelse(is.na(FinalPredictedMarsaxlokkmeteo$finalwgust),FinalPredictedMarsaxlokkmeteo$gap_fill, c(FinalPredictedMarsaxlokkmeteo$finalwgust,FinalPredictedMarsaxlokkmeteo$gap_fill))
+View(FinalPredictedMarsaxlokkmeteo)
+FinalPredictedMarsaxlokkmeteo$gap_fill <- rollapply(
+  data    = FinalPredictedMarsaxlokkmeteo$finalwdir,
+  width   = 14400, #basing the rolling average using prior 10 days data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+FinalPredictedMarsaxlokkmeteo$Fullwdir<- ifelse(is.na(FinalPredictedMarsaxlokkmeteo$finalwdir),FinalPredictedMarsaxlokkmeteo$gap_fill, c(FinalPredictedMarsaxlokkmeteo$finalwdir,FinalPredictedMarsaxlokkmeteo$gap_fill))
+View(FinalPredictedMarsaxlokkmeteo)
+
+FinalgapfilledMarsaxlokkMeteo<-FinalPredictedMarsaxlokkmeteo[,c(1:2,10:15)]
+write.csv(as.data.frame(FinalgapfilledMarsaxlokkMeteo),"C:/Users/Nicole/OneDrive/Desktop/FinalgapfilledMarsaxlokkMeteo.csv")
+View(FinalgapfilledMarsaxlokkMeteo)
+FinalgapfilledMarsaxlokkMeteo<-read.csv("C:/Users/Nicole/OneDrive/Desktop/FinalgapfilledMarsaxlokkMeteo.csv")
+FinalgapfilledMarsaxlokkMeteo$date_time<- strptime(FinalgapfilledMarsaxlokkMeteo$date_time, "%Y-%m-%d %H:%M:%S")
+FinalgapfilledMarsaxlokkMeteo$date_time<- as.POSIXct(FinalgapfilledMarsaxlokkMeteo$date_time)
+
+#Gap filling Marsaxlokk Sea Level variable
+#data from 2022-02-19 12:17 till 2022-05-15 12:28
+library(readr)
+library(imputeTS)
+library(forecast)
+FinalgapfilledMarsaxlokkMeteo <- read_csv("C:/Users/Nicole/OneDrive/Desktop/FinalgapfilledMarsaxlokkMeteo.csv")
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,515, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,709799, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,169290, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,536546, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,536552, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565501, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565617, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565559, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565571, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565111, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565023, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,28619, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565417, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565570, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565552, NA)
+FinalgapfilledMarsaxlokkMeteo$h1<-replace(FinalgapfilledMarsaxlokkMeteo$h1,565302, NA)
+library(rWind)
+FinalgapfilledMarsaxlokkMeteo$u<-ds2uv(FinalgapfilledMarsaxlokkMeteo$Fullwdir, FinalgapfilledMarsaxlokkMeteo$Fullwspeed)[,1]
+FinalgapfilledMarsaxlokkMeteo$v<-ds2uv(FinalgapfilledMarsaxlokkMeteo$Fullwdir, FinalgapfilledMarsaxlokkMeteo$Fullwspeed)[,2]
+u<-FinalgapfilledMarsaxlokkMeteo$u
+v<-FinalgapfilledMarsaxlokkMeteo$v
+#
+#fitting a model using a 1 month before the gap
+library(naniar)
+n_miss(FinalgapfilledMarsaxlokkMeteo$h1)
+plot(FinalgapfilledMarsaxlokkMeteo$date_time,FinalgapfilledMarsaxlokkMeteo$h1,type='l')
+
+chunck<-as.data.frame(FinalgapfilledMarsaxlokkMeteo[525601:647952,-1])
+View(chunck)
+chunck$h1<-replace(chunck$h1,10946, NA)
+chunck$h1<-replace(chunck$h1,10952, NA)
+plot(chunck$date_time,chunck$h1,type='l')
+n_miss(chunck$h1)
+# Formatting the data in a proper way
+chunck$date_time<- strptime(chunck$date_time, "%Y-%m-%d %H:%M:%S")
+chunck$date_time<- as.POSIXct(chunck$date_time)
+#obtaining the predicted tidal component
+library(SWMPr)
+library(oce)
+datslst <- as.sealevel(elevation = (chunck$h1), time = chunck$date_time)
+mods <- tidem(t = datslst)
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+chunck$Estimated <- predict(mods)
+require(zoo) 
+#Fitting a multiple linear regression model
+mlrmodel<-lm(h1~Fullatmp+Fullairtemp+u+v+Fullhumidity+Fullwgust+Estimated,data=ts(chunck))
+summary(mlrmodel)
+#multicollinearity test
+library("olsrr")
+ols_vif_tol(mlrmodel)
+library(lmtest) #dwtest test for serial correlation
+dwtest(mlrmodel) 
+## HAC error test
+fitss<-(coef(print(lmtest::coeftest(mlrmodel, sandwich::NeweyWest(mlrmodel, lag = 1)))))
+# u turns out to be insignificant
+library(sandwich)
+#removing the variable u
+NW_VCOV <- NeweyWest(lm(h1~Fullatmp+Fullairtemp+v+Fullhumidity+Fullwgust+Estimated,data=chunck), 
+                     lag =  1)
+NW_VCOV
+example_mod <- lm(h1~Fullatmp+Fullairtemp+v+Fullhumidity+Fullwgust+Estimated,data=ts(chunck))
+summary(example_mod)
+library(urca)
+df=ur.df(example_mod$residuals,type="none",lags=1)
+summary(df)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(example_mod)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(chunck$Fullairtemp),sd=sqrt(resid_ar$sigma2))
+fitss<-coef(example_mod)
+fitss
+chunck$new<-fitss[1]+fitss[2]*chunck$Fullatmp+fitss[3]*chunck$Fullairtemp+fitss[4]*chunck$v+fitss[5]*chunck$Fullhumidity+fitss[6]*chunck$Fullwgust+fitss[7]*chunck$Estimated+yt
+
+#second gap
+#another gap data from 2022-05-13 13:55 till 2022-06-21 13:54
+library(readr)
+library(imputeTS)
+library(forecast)
+FinalgapfilledMarsaxlokkMeteo <- read_csv("C:/Users/Nicole/OneDrive/Desktop/FinalgapfilledMarsaxlokkMeteo.csv")
+View(FinalgapfilledMarsaxlokkMeteo)
+chunck2<-as.data.frame(FinalgapfilledMarsaxlokkMeteo[645159:701318,-1])  #645159:701318
+plot(chunck2$date_time,chunck2$h1,type='l')
+#obtaining the predicted tidal component
+library(SWMPr)
+library(oce)
+datslst2 <- as.sealevel(elevation = (chunck2$h1), time = chunck2$date_time)
+mods <- tidem(t = datslst2)
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+chunck2$Estimated <- predict(mods)
+View(chunck2)
+mlrmodel2<-tslm(h1~Fullatmp+Fullairtemp+u+v+Fullhumidity+Fullwgust+Estimated,data=ts(chunck2))
+summary(mlrmodel2)
+## HAC error test
+#Fitting a multiple linear regression model
+fitss<-(coef(print(lmtest::coeftest(mlrmodel2, sandwich::NeweyWest(mlrmodel, lag = 1)))))
+example_mod <- lm(h1~Fullatmp+Fullairtemp+u+v+Fullhumidity+Fullwgust+Estimated,data=ts(chunck2))
+library(urca)
+df=ur.df(example_mod$residuals,type="none",lags=1)
+summary(df)
+lmtest::dwtest(example_mod)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(example_mod)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+plot(density(residuals(mlrmodel)))
+set.seed(125329)
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(chunck$Fullairtemp),sd=sqrt(resid_ar$sigma2))
+tsdiag(resid_ar)
+plot(yt,type='l')
+fitss<-coef(example_mod)
+chunck2$new<-fitss[1]+fitss[2]*chunck2$Fullatmp+fitss[3]*chunck2$Fullairtemp+ fitss[4]*chunck2$u+fitss[5]*chunck2$v+fitss[6]*chunck2$Fullhumidity+fitss[7]*chunck2$Fullwgust+fitss[8]*chunck2$Estimated+yt
+chunck2$secondgapsea<-ifelse(is.na(chunck2$h1),chunck2$new, c(chunck2$h1,chunck2$new))
+completegapfilledMarsaxlokk<-as.data.frame(FinalgapfilledMarsaxlokkMeteo)
+#Gap filling through linear interpolation for the Marsaxlokk Sea Level Variable
+completegapfilledMarsaxlokk<- read.csv("C:/Users/Nicole/OneDrive/Desktop/completegapfilledMarsaxlokk.csv")
+#completegapfilledMarsaxlokk$FULLSealevel2<-na_kalman(completegapfilledMarsaxlokk$FULLSealevel2, smooth = TRUE)
+#View(completegapfilledMarsaxlokk)
+write.csv(as.data.frame(completegapfilledMarsaxlokk),"C:/Users/Nicole/OneDrive/Desktop/completegapfilledMarsaxlokk.csv")
+
+
+#Gap filling the Portomaso Meteorological Variables through the use of the rolling average method.
+library(curl)
+library(zoo)
+library(data.table)
+library(tidyr)
+library(tidyverse)
+library(onlineforecast)
+library(dplyr)
+library(ggplot2)
+library(writexl)
+portomasohighres<- read.csv("C:/Users/Nicole/Downloads/Portomaso SeaLevel (HighRes) (2).csv", sep=";")
+View(portomasohighres)
+attach(portomasohighres)
+portomasohighres$date_time<- paste(portomasohighres$DATE, portomasohighres$TIME)
+portomasohighres <- portomasohighres %>%
+  rename(h1 = SENSOR1)
+portomasohighres <- portomasohighres %>%
+  rename(atm_press = SENSOR2)
+portomasohighres <- portomasohighres %>%
+  rename(air_temp = SENSOR3)
+View(portomasohighres)
+portomasohighres<-subset(portomasohighres, atm_press != "9999.99") #removing the erroneous values 
+portomasohighres<-subset(portomasohighres, atm_press != "0.00")
+portomasohighres<-subset(portomasohighres, atm_press != "0")
+portomasohighres<-subset(portomasohighres, atm_press != "9999")
+portomasohighres<-subset(portomasohighres, air_temp != "9999.99")
+portomasohighres<-subset(portomasohighres, air_temp != "9999.0")
+portomasohighres<-subset(portomasohighres, air_temp != "9999")
+portomasohighres<-subset(portomasohighres, air_temp != "0.0")
+portomasohighres<-subset(portomasohighres, h1 != "9999")
+portomasohighres<-subset(portomasohighres, h1 != "-9999")
+portomasohighres<-subset(portomasohighres, h1 != "65.4585")
+# Formatting the data in a proper way
+portomasohighres$date_time<- strptime(portomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+portomasohighres$date_time<- as.POSIXct(portomasohighres$date_time)
+str(portomasohighres)
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+library(dplyr)
+library(forecast)
+newdate_time<-as.data.frame(date_time)
+newportomasohighres<-as.data.frame(portomasohighres)
+newportomasohighres<-left_join(newdate_time,newportomasohighres[,c(4:6,8)],by="date_time",all=TRUE)
+library(naniar)
+#interpolating based on the rolling average:
+#sectioning the data in different years
+#2017
+#Atmospheric Pressure
+data2017<-newportomasohighres[1:527135,]
+data2017<-as.data.frame(data2017)
+length(data2017$date_time)
+View(data2017)
+#interpolating the atmp_press values which are missing based on few observations prior to the gap since a similar pattern is exhibited
+library(zoo)
+n_miss(data2017$atm_press)
+data2017$gap_fillatmpress <- rollapply(
+  data    = data2017$atm_press,
+  width   = 14400, #basing the rolling average using prior 10 day data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+library(dplyr)
+library(forecast)
+newdate_time<-as.data.frame(date_time)
+data2017<-as.data.frame(data2017)
+newdata2017<-left_join(newdate_time,data2017,by="date_time",all=TRUE)
+View(newdata2017)
+length(data2017$date_time)
+length(newdata2017$date_time)
+# Formatting the data in a proper way
+newdata2017$date_time<- strptime(newdata2017$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2017$date_time<- as.POSIXct(newdata2017$date_time)
+str(newdata2017)
+
+newportomasohighres$atmp2017<-(newdata2017$Fullatmpress)
+View(newportomasohighres)
+newportomasohighres$atm_press <- ifelse(is.na(newportomasohighres$atm_press),newportomasohighres$atmp2017, c(newportomasohighres$atm_press,newportomasohighres$atmp2017 ))
+write.csv(as.data.frame(newportomasohighres),"C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+View(newportomasohighres)
+#interpolating based on the rolling average:
+#sectioning the data in different years
+#2018
+#Atmospheric Pressure
+data2018<-newportomasohighres[527136:1052735,]
+data2018<-as.data.frame(data2018)  
+# Formatting the data in a proper way
+data2018$date_time<- strptime(data2018$date_time, "%Y-%m-%d %H:%M:%S")
+data2018$date_time<- as.POSIXct(data2018$date_time)
+#interpolating the atmp_press values which are missing based on few observations prior to the gap since a similar pattern is exhibited
+library(zoo)
+n_miss(data2018$atm_press)
+data2018$gap_fillatmpress <- rollapply(
+  data    = data2018$atm_press,
+  width   = 14400, # basing the rolling average using prior 10 day data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+data2018$Fullatmpress <- ifelse(is.na(data2018$atm_press),data2018$gap_fillatmpress, c(data2018$atm_press,data2018$gap_fillatmpress ))
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+newdate_time<-as.data.frame(date_time)
+data2018<-as.data.frame(data2018)
+# Formatting the data in a proper way
+data2018$date_time<- strptime(data2018$date_time, "%Y-%m-%d %H:%M:%S")
+data2018$date_time<- as.POSIXct(data2018$date_time)
+str(newdata2018)
+newdata2018<-left_join(newdate_time,data2018,by="date_time",all=TRUE)
+# Formatting the data in a proper way
+newdata2018$date_time<- strptime(newdata2018$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2018$date_time<- as.POSIXct(newdata2018$date_time)
+# Formatting the data in a proper way
+newdata2018$date_time<- strptime(newdata2018$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2018$date_time<- as.POSIXct(newdata2018$date_time)
+str(newdata2018)
+length(newdata2018$Fullatmpress)
+# Formatting the data in a proper way
+newportomasohighres$date_time<- strptime(newportomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
+newportomasohighres$atmp2018<-ifelse(is.na(newportomasohighres$atm_press),newdata2018$Fullatmpress, c(newportomasohighres$atm_press,newdata2018$Fullatmpress ))
+length(newportomasohighres$date_time)
+length(newdata2018$date_time)
+#newportomasohighres$atm_press <- ifelse(is.na(newportomasohighres$atm_press),newportomasohighres$atmp2018, c(newportomasohighres$atm_press,newportomasohighres$atmp2018 ))
+View(newportomasohighres)
+write.csv(as.data.frame(newportomasohighres),"C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+View(newportomasohighres)
+#interpolating based on the rolling average:
+#sectioning the data in different years
+#2019
+#Atmospheric Pressure
+data2019<-newportomasohighres[1052736:1538978,]
+data2019<-as.data.frame(data2019)
+View(data2019)
+# Formatting the data in a proper way
+data2019$date_time<- strptime(data2019$date_time, "%Y-%m-%d %H:%M:%S")
+data2019$date_time<- as.POSIXct(data2019$date_time)
+#interpolating the atmp_press values which are missing based on few observations prior to the gap since a similar pattern is exhibited
+library(zoo)
+n_miss(data2019$atm_press)
+data2019$gap_fillatmpress <- rollapply(
+  data    = data2019$atm_press,
+  width   =14400, #basing the rolling average using prior 10 day data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+data2019$Fullatmpress <- ifelse(is.na(data2019$atm_press),data2019$gap_fillatmpress, c(data2019$atm_press,data2019$gap_fillatmpress ))
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+library(dplyr)
+library(forecast)
+newdate_time<-as.data.frame(date_time)
+data2019<-as.data.frame(data2019)
+# Formatting the data in a proper way
+data2019$date_time<- strptime(data2019$date_time, "%Y-%m-%d %H:%M:%S")
+data2019$date_time<- as.POSIXct(data2019$date_time)
+str(newdata2019)
+newdata2019<-left_join(newdate_time,data2019,by="date_time",all=TRUE)
+# Formatting the data in a proper way
+newdata2019$date_time<- strptime(newdata2019$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2019$date_time<- as.POSIXct(newdata2019$date_time)
+View(newdata2019)
+# Formatting the data in a proper way
+newdata2019$date_time<- strptime(newdata2019$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2019$date_time<- as.POSIXct(newdata2019$date_time)
+# Formatting the data in a proper way
+newportomasohighres$date_time<- strptime(newportomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
+newportomasohighres$atmp2019<-ifelse(is.na(newportomasohighres$atm_press),newdata2019$Fullatmpress, c(newportomasohighres$atm_press,newdata2019$Fullatmpress ))
+#newportomasohighres$atm_press <- ifelse(is.na(newportomasohighres$atm_press),newportomasohighres$atmp2018, c(newportomasohighres$atm_press,newportomasohighres$atmp2018 ))
+View(newportomasohighres)
+write.csv(as.data.frame(newportomasohighres),"C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+View(newportomasohighres)
+newportomasohighres$atm_press <- ifelse(is.na(newportomasohighres$atm_press),c(newportomasohighres$atmp2019), c(newportomasohighres$atm_press,newportomasohighres$atmp2019 ))
+newportomasohighres$atm_press <- ifelse(is.na(newportomasohighres$atm_press),c(newportomasohighres$atmp2018), c(newportomasohighres$atm_press,newportomasohighres$atmp2018 ))
+View(newportomasohighres)
+newportomasohighres<-newportomasohighres[,c(4:7)]
+View(newportomasohighres)
+write.csv(as.data.frame(newportomasohighres),"C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+View(newportomasohighres)
+#final gap filled dataset with full atmospheric observations
+#focusing on the variable air temp
+# Formatting the data in a proper way
+newportomasohighres$date_time<- strptime(newportomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
+#air temp
+data2017<-newportomasohighres[1:527135,]
+data2017<-as.data.frame(data2017)
+length(data2017$date_time)
+plot(data2017$air_temp[187700:204700],type='l')
+#data20172<-newportomasohighres[165000:215000,]
+library(forecast)
+#interpolating the air temp values which are missing based on few observations prior to the gap since a similar pattern is exhibited
+library(zoo)
+data2017$gap_fillair_temp <- rollapply(
+  data    = data2017$air_temp,
+  width   = 14400, #basing the rolling average using prior 10 day data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+data2017$Fullair_temp <- ifelse(is.na(data2017$air_temp),data2017$gap_fillair_temp, c(data2017$air_temp,data2017$gap_fillair_temp ))
+View(data2017)
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+newdate_time<-as.data.frame(date_time)
+data2017<-as.data.frame(data2017)
+# Formatting the data in a proper way
+data2017$date_time<- strptime(data2017$date_time, "%Y-%m-%d %H:%M:%S")
+data2017$date_time<- as.POSIXct(data2017$date_time)
+newdata2017<-left_join(newdate_time,data2017,by="date_time",all=TRUE)
+# Formatting the data in a proper way
+newdata2017$date_time<- strptime(newdata2017$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2017$date_time<- as.POSIXct(newdata2017$date_time)
+plot(newdata2017$Fullair_temp,type='l')
+View(newdata2017)
+# Formatting the data in a proper way
+newdata2017$date_time<- strptime(newdata2017$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2017$date_time<- as.POSIXct(newdata2017$date_time)
+# Formatting the data in a proper way
+newportomasohighres$date_time<- strptime(newportomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
+newportomasohighres$air_temp2017<-ifelse(is.na(newportomasohighres$air_temp),newdata2017$Fullair_temp, c(newportomasohighres$air_temp,newdata2017$Fullair_temp ))
+View(newportomasohighres)
+data2018<-newportomasohighres[527136:1052735,]
+data2018<-as.data.frame(data2018)  #527135
+# Formatting the data in a proper way
+data2018$date_time<- strptime(data2018$date_time, "%Y-%m-%d %H:%M:%S")
+data2018$date_time<- as.POSIXct(data2018$date_time)
+#interpolating the air temp values which are missing based on few observations prior to the gap since a similar pattern is exhibited
+library(zoo)
+n_miss(data2018$air_temp)
+data2018$gap_fillair_temp <- rollapply(
+  data    = data2018$air_temp,
+  width   = 14400, #basing the rolling average using prior 10 day data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =13541)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+data2018$Fullair_temp <- ifelse(is.na(data2018$air_temp),data2018$gap_fillair_temp, c(data2018$air_temp,data2018$gap_fillair_temp))
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+newdate_time<-as.data.frame(date_time)
+data2018<-as.data.frame(data2018)
+# Formatting the data in a proper way
+data2018$date_time<- strptime(data2018$date_time, "%Y-%m-%d %H:%M:%S")
+data2018$date_time<- as.POSIXct(data2018$date_time)
+str(newdata2018)
+newdata2018<-left_join(newdate_time,data2018,by="date_time",all=TRUE)
+# Formatting the data in a proper way
+newdata2018$date_time<- strptime(newdata2018$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2018$date_time<- as.POSIXct(newdata2018$date_time)
+# Formatting the data in a proper way
+newdata2018$date_time<- strptime(newdata2018$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2018$date_time<- as.POSIXct(newdata2018$date_time)
+# Formatting the data in a proper way
+newportomasohighres$date_time<- strptime(newportomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
+newportomasohighres$air_temp2018<-ifelse(is.na(newportomasohighres$air_temp),newdata2018$Fullair_temp, c(newportomasohighres$air_temp,newdata2018$Fullair_temp ))
+#newportomasohighres$atm_press <- ifelse(is.na(newportomasohighres$atm_press),newportomasohighres$atmp2018, c(newportomasohighres$atm_press,newportomasohighres$atmp2018 ))
+write.csv(as.data.frame(newportomasohighres),"C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+View(newportomasohighres)
+data2019<-newportomasohighres[1052736:1538978,]
+data2019<-as.data.frame(data2019)
+View(data2019)
+# Formatting the data in a proper way
+data2019$date_time<- strptime(data2019$date_time, "%Y-%m-%d %H:%M:%S")
+data2019$date_time<- as.POSIXct(data2019$date_time)
+#interpolating the air temp values which are missing based on few observations prior to the gap since a similar pattern is exhibited
+library(zoo)
+n_miss(data2019$air_temp)
+data2019$gap_fillair_temp <- rollapply(
+  data    = data2019$air_temp,
+  width   = 14400, #basing the rolling average using prior 10 day data
+  FUN     = function(x) {
+    missingval <- seq(1, length(x), by =11101)
+    mean(x[missingval], na.rm = TRUE)
+  },
+  partial = TRUE,
+  fill    = NA,
+  align   = "center"  #this allows the interpolation method to use the surrounding mean values for the interpolation
+)
+data2019$Fullair_temp <- ifelse(is.na(data2019$air_temp),data2019$gap_fillair_temp, c(data2019$air_temp,data2019$gap_fillair_temp))
+date_time = seq(
+  from = as.POSIXct("2017-01-01 00:00:00"),
+  to =  as.POSIXct("2019-12-04 16:02:15"),
+  by = "min"
+)
+newdate_time<-as.data.frame(date_time)
+data2019<-as.data.frame(data2019)
+# Formatting the data in a proper way
+data2019$date_time<- strptime(data2019$date_time, "%Y-%m-%d %H:%M:%S")
+data2019$date_time<- as.POSIXct(data2019$date_time)
+str(newdata2019)
+newdata2019<-left_join(newdate_time,data2019,by="date_time",all=TRUE)
+# Formatting the data in a proper way
+newdata2019$date_time<- strptime(newdata2019$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2019$date_time<- as.POSIXct(newdata2019$date_time)
+# Formatting the data in a proper way
+newdata2019$date_time<- strptime(newdata2019$date_time, "%Y-%m-%d %H:%M:%S")
+newdata2019$date_time<- as.POSIXct(newdata2019$date_time)
+str(newdata2019)
+length(newdata2019$Fullatmpress)
+# Formatting the data in a proper way
+newportomasohighres$date_time<- strptime(newportomasohighres$date_time, "%Y-%m-%d %H:%M:%S")
+newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
+newportomasohighres$air_temp2019<-ifelse(is.na(newportomasohighres$air_temp),newdata2019$Fullair_temp, c(newportomasohighres$air_temp,newdata2019$Fullair_temp ))
+newportomasohighres$air_temp <- ifelse(is.na(newportomasohighres$air_temp),c(newportomasohighres$air_temp2017), c(newportomasohighres$air_temp,newportomasohighres$air_temp2017 ))
+newportomasohighres$air_temp <- ifelse(is.na(newportomasohighres$air_temp),c(newportomasohighres$air_temp2019), c(newportomasohighres$air_temp,newportomasohighres$air_temp2019 ))
+newportomasohighres$air_temp <- ifelse(is.na(newportomasohighres$air_temp),c(newportomasohighres$air_temp2018), c(newportomasohighres$air_temp,newportomasohighres$air_temp2018 ))
+newportomasohighres<-newportomasohighres[,c(3:6)]
+write.csv(as.data.frame(newportomasohighres),"C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+View(newportomasohighres)
+
+
+#Gap filling Portomaso Sea Level variable
+#focusing on gap filling the sea level variable #through multiple linear regression
+#focusing on the first gap: 2017-05-11 08:07:00 till 2017-05-16 00:54:00
+library(forecast)
+port1<-newportomasohighres[138260:212540,]  #ranging from 2017-04-29 01:00:00 till 2017-05-26 19:40:00
+portotide <- as.sealevel(elevation = (port1$h1), time = port1$date_time)
+mods <- tidem(t = portotide )
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+port1$fulltide <- predict(mods)
+mregm<-lm(h1~atm_press+air_temp+fulltide,data=ts(port1))
+summary(mregm)
+## HAC error test
+#Fitting a multiple linear regression model
+fitss<-(coef(print(lmtest::coeftest(mregm, sandwich::NeweyWest(mregm, lag = 1)))))
+dwtest(mregm)
+#multicollinearity test
+library("olsrr")
+ols_vif_tol(mregm)
+# Test for serial correlation
+lmtest::dwtest(mregm)
+bptest(mregm)
+library(urca)
+df=ur.df(mregm$residuals,type="none",lags=1)
+summary(df)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(mregm)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(port1$atm_press),sd=sqrt(resid_ar$sigma2))
+port1$mmpred<-ff[1]+ff[2]*port1$atm_press+ff[3]*port1$air_temp+ff[4]*port1$fulltide+yt
+port1$fillsea<-ifelse(is.na(port1$h1),port1$mmpred, c(port1$h1,port1$mmpred))
+write.csv(as.data.frame(port1),"C:/Users/Nicole/OneDrive/Desktop/port1.csv")
+port1<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port1.csv")
+#focusing on the second and third gaps: T4: 2018-01-01 00:00:00 till 2018-01-05 16:39:00, T5: 2018-01-14 04:40:00 till 2018-01-23 20:20:00
+plot(newportomasohighres$date_time[170000:210000],newportomasohighres$h1[170000:210000],type='l')
+port2<-newportomasohighres[170000:210000,]  #ranging from 2017-11-22 07:44 till 2018-01-26 19:44
+library(SWMPr)
+library(oce)
+portotide <- as.sealevel(elevation = (port2$h1), time = port2$date_time)
+mods <- tidem(t = portotide )
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+port2$fulltide <- predict(mods)
+mregm<-lm(h1~atm_press+air_temp+fulltide,data=ts(port2))
+summary(mregm)
+## HAC error test
+#Fitting a multiple linear regression model
+fitss<-(coef(print(lmtest::coeftest(mregm, sandwich::NeweyWest(mregm, lag = 1)))))
+#multicollinearity test
+library("olsrr")
+ols_vif_tol(mregm)
+# Test for serial correlation
+lmtest::dwtest(mregm)
+bptest(mregm)
+library(urca)
+df=ur.df(mregm$residuals,type="none",lags=1)
+summary(df)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(mregm)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+plot(density(residuals(mregm)))
+set.seed(125329)
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(port2$atm_press),sd=sqrt(resid_ar$sigma2))
+tsdiag(resid_ar)
+plot(yt,type='l')
+port2$mmpred<-ff[1]+ff[2]*port2$atm_press+ff[3]*port2$air_temp+ff[4]*port2$fulltide+yt
+port2$fillsea<-ifelse(is.na(port2$h1),port2$mmpred, c(port2$h1,port2$mmpred))
+write.csv(as.data.frame(port2),"C:/Users/Nicole/OneDrive/Desktop/port2.csv")
+port2<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port2.csv")
+#focusing on the T6: 2018-06-08 16:44:00 till 2018-06-12 11:14:00
+port3<-newportomasohighres[220000:240000,] #data ranging from 2018-04-24 03:24 till 2018-07-09 12:44
+portotide <- as.sealevel(elevation = (port3$h1), time = port3$date_time)
+mods <- tidem(t = portotide )
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+port3$fulltide <- predict(mods)
+mregm<-lm(h1~atm_press+air_temp+fulltide,data=ts(port3))
+summary(mregm)
+## HAC error test
+#Fitting a multiple linear regression model
+fitss<-(coef(print(lmtest::coeftest(mregm, sandwich::NeweyWest(mregm, lag = 1)))))
+#multicollinearity test
+library("olsrr")
+ols_vif_tol(mregm)
+# Test for serial correlation
+lmtest::dwtest(mregm)
+bptest(mregm)
+library(urca)
+df=ur.df(mregm$residuals,type="none",lags=1)
+summary(df)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(mregm)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+plot(density(residuals(mregm)))
+set.seed(125329)
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(port3$atm_press),sd=sqrt(resid_ar$sigma2))
+port3$mmpred<-ff[1]+ff[2]*port3$atm_press+ff[3]*port3$air_temp+ff[4]*port3$fulltide+yt
+port3$fillsea<-ifelse(is.na(port3$h1),port3$mmpred, c(port3$h1,port3$mmpred))
+plot(port3$fillsea,type='l')
+write.csv(as.data.frame(port3),"C:/Users/Nicole/OneDrive/Desktop/port3.csv")
+port3<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port3.csv")
+View(port3)
+#focusing on the T7 gap: 2019-01-01 23:20:00 till 2019-01-03 08:40:00 
+port4<-newportomasohighres[470000:560000,] #ranging from 2018-12-17 01:04 till 2019-01-30 18:24
+portotide <- as.sealevel(elevation = (port4$h1), time = port4$date_time)
+mods <- tidem(t = portotide )
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+port4$fulltide <- predict(mods)
+mregm<-lm(h1~atm_press+air_temp+fulltide,data=ts(port4))
+summary(mregm)
+## HAC error test
+#Fitting a multiple linear regression model
+fitss<-(coef(print(lmtest::coeftest(mregm, sandwich::NeweyWest(mregm, lag = 1)))))
+#multicollinearity test
+library("olsrr")
+ols_vif_tol(mregm)
+# Test for serial correlation
+lmtest::dwtest(mregm)
+bptest(mregm)
+library(urca)
+df=ur.df(mregm$residuals,type="none",lags=1)
+summary(df)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(mregm)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+plot(density(residuals(mregm)))
+set.seed(125329)
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(port4$atm_press),sd=sqrt(resid_ar$sigma2))
+port4$mmpred<-ff[1]+ff[2]*port4$atm_press+ff[3]*port4$air_temp+ff[4]*port4$fulltide+yt
+port4$fillsea<-ifelse(is.na(port4$h1),port4$mmpred, c(port4$h1,port4$mmpred))
+write.csv(as.data.frame(port4),"C:/Users/Nicole/OneDrive/Desktop/port4.csv")
+port4<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port4.csv")
+View(port4)
+# focusing on the T8 gap: 2019-07-21 10:20:00 till 2019-07-29 18:20:00
+port5<-newportomasohighres[578000:600000,] #ranging from 2019-06-13 07:24 till 2019-08-30 04:44.
+portotide <- as.sealevel(elevation = (port5$h1), time = port5$date_time)
+mods <- tidem(t = portotide )
+# AIC analysis
+extractAIC(mods[["model"]])
+# add predictions to observed data
+port5$fulltide <- predict(mods)
+mregm<-lm(h1~atm_press+air_temp+fulltide,data=ts(port5))
+## HAC error test
+#Fitting a multiple linear regression model
+fitss<-(coef(print(lmtest::coeftest(mregm, sandwich::NeweyWest(mregm, lag = 1)))))
+#multicollinearity test
+library("olsrr")
+ols_vif_tol(mregm)
+# Test for serial correlation
+lmtest::dwtest(mregm)
+bptest(mregm)
+library(urca)
+df=ur.df(mregm$residuals,type="none",lags=1)
+summary(df)
+#fitting an AR(1) on the residuals
+library(ts.extend)
+resid=residuals(mregm)
+resid_ar<-arima(resid,order=c(1,0,0))
+summary(resid_ar)
+rho<-resid_ar$coef[1] # slope
+plot(density(residuals(mregm)))
+set.seed(125329)
+yt <- arima.sim(list(order=c(1,0,0), ar=rho), n=length(port5$atm_press),sd=sqrt(resid_ar$sigma2))
+port5$mmpred<-ff[1]+ff[2]*port5$atm_press+ff[3]*port5$fulltide+yt
+port5$fillsea<-ifelse(is.na(port5$h1),port5$mmpred, c(port5$h1,port5$mmpred))
+plot(port5$fillsea,type='l')
+write.csv(as.data.frame(port5),"C:/Users/Nicole/OneDrive/Desktop/port5.csv")
+port5<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port5.csv")
+View(port5)
+#combining all the gap filled into 1 dataset
+newportomasohighres<- read.csv("C:/Users/Nicole/OneDrive/Desktop/newportomasohighres.csv")
+port1<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port1.csv")
+newportomasohighres$port1s<-ifelse(is.na(newportomasohighres$h1),port1$fillsea, c(newportomasohighres$h1,port1$fillsea ))
+port2<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port2.csv")
+newportomasohighres$port2s<-ifelse(is.na(newportomasohighres$h1),port2$fillsea, c(newportomasohighres$h1,port2$fillsea ))
+port3<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port3.csv")
+newportomasohighres$port3s<-ifelse(is.na(newportomasohighres$h1),port3$fillsea, c(newportomasohighres$h1,port3$fillsea ))
+port4<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port4.csv")
+newportomasohighres$port4s<-ifelse(is.na(newportomasohighres$h1),port4$fillsea, c(newportomasohighres$h1,port4$fillsea ))
+port5<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port5.csv")
+newportomasohighres$port5s<-ifelse(is.na(newportomasohighres$h1),port5$fillsea, c(newportomasohighres$h1,port5$fillsea ))
+newportomasohighres$newh1<-ifelse(is.na(newportomasohighres$h1),c(newportomasohighres$port1s), c(newportomasohighres$h1,newportomasohighres$port1s))
+newportomasohighres$newh1<-ifelse(is.na(newportomasohighres$newh1),c(newportomasohighres$port2s), c(newportomasohighres$newh1,newportomasohighres$port2s))
+newportomasohighres$newh1<-ifelse(is.na(newportomasohighres$newh1),c(newportomasohighres$port3s), c(newportomasohighres$newh1,newportomasohighres$port3s))
+newportomasohighres$newh1<-ifelse(is.na(newportomasohighres$newh1),c(newportomasohighres$port4s), c(newportomasohighres$newh1,newportomasohighres$port4s))
+newportomasohighres$newh1<-ifelse(is.na(newportomasohighres$newh1),c(newportomasohighres$port5s), c(newportomasohighres$newh1,newportomasohighres$port5s))
+completegapfilledPortomaso<-newportomasohighres[,c(1,3,4,13)] #creating a new dataset with the fully gap filled Portomaso sea level data
+write.csv(as.data.frame(completegapfilledPortomaso),"C:/Users/Nicole/OneDrive/Desktop/completegapfilledPortomaso.csv")
+completegapfilledPortomaso<- read.csv("C:/Users/Nicole/OneDrive/Desktop/completegapfilledPortomaso.csv")
+View(completegapfilledPortomaso)
+#Obtaining the 20 minute rolling variance of the sea level variable
+library(roll)
+completegapfilledPortomaso$normsealevelrollvar<-roll_var(completegapfilledPortomaso$newh1,width=20)
+completegapfilledMarsaxlokk $FULLSealevel2<-roll_var(completegapfilledMarsaxlokk $FULLSealevel2,width=20)
+
+
+#Python Code used to apply the LSTM model to obtain forecasts for Case 1
+
+from math import sqrt
+from numpy import concatenate
+from matplotlib import pyplot
+from pandas import read_csv
+from pandas import DataFrame
+from pandas import concat
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import mean_squared_error
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from pandas import read_csv
+from pandas import datetime
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+from matplotlib import pyplot
+# load and plot dataset
+from pandas import read_csv
+from pandas import datetime
+from matplotlib import pyplot
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+from matplotlib import pyplot
+ # load and plot dataset
+def time_series_to_supervised(data, n_lag=1, n_fut=1, selLag=None, selFut=None, dropnan=True):
+    """
+    Converts a time series to a supervised learning data set by adding time-shifted prior and future period
+    data as input or output (i.e., target result) columns for each period
+    :param data:  a series of periodic attributes as a list or NumPy array
+    :param n_lag: number of PRIOR periods to lag as input (X); generates: X(t-1), X(t-2); min= 0 --> nothing lagged
+    :param n_fut: number of FUTURE periods to add as target output (y); generates Yout(t+1); min= 0 --> no future periods
+    :param selLag:  only copy these specific PRIOR period attributes; default= None; EX: ['Xa', 'Xb' ]
+    :param selFut:  only copy these specific FUTURE period attributes; default= None; EX: ['rslt', 'xx']
+    :param dropnan: True= drop rows with NaN values; default= True
+    :return: a Pandas DataFrame of time series data organized for supervised learning
+    NOTES:
+    (1) The current period's data is always included in the output.
+    (2) A suffix is added to the original column names to indicate a relative time reference: e.g., (t) is the current
+        period; (t-2) is from two periods in the past; (t+1) is from the next period
+    """
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = DataFrame(data)
+    origNames = df.columns
+    cols, names = list(), list()
+    # include all current period attributes
+    cols.append(df.shift(0))
+    names += [('%s' % origNames[j]) for j in range(n_vars)]
+    # lag any past period attributes (t-n_lag,...,t-1)
+    n_lag = max(0, n_lag)  # force valid number of lag periods
+    for i in range(n_lag, 0, -1):
+        suffix= '(t-%d)' % i
+        if (None == selLag):   
+            cols.append(df.shift(i))
+            names += [('%s%s' % (origNames[j], suffix)) for j in range(n_vars)]
+        else:
+            for var in (selLag):
+                cols.append(df[var].shift(i))
+                names+= [('%s%s' % (var, suffix))]
+ 
+    # include future period attributes (t+1,...,t+n_fut)
+    n_fut = max(n_fut, 0)  # force valid number of future periods to shift back
+    for i in range(1, n_fut + 1):
+        suffix= '(t+%d)' % i
+        if (None == selFut):  
+            cols.append(df.shift(-i))
+            names += [('%s%s' % (origNames[j], suffix)) for j in range(n_vars)]
+        else:  # copy only selected future attributes
+            for var in (selFut):
+                cols.append(df[var].shift(-i))
+                names += [('%s%s' % (var, suffix))]
+    # combine everything
+    agg = concat(cols, axis=1)
+    agg.columns = names
+    # drop rows with NaN values introduced by lagging
+    if dropnan:
+        agg.dropna(inplace=True)
+    return agg
+# load dataset
+def parser(x):
+	return datetime.strptime('202'+x, '%Y-%m')
+dataset = pd.read_csv("C:/Users/Nicole/OneDrive/Desktop/normalizeddataportomarsaxlokk.csv",parse_dates=['date_time'])
+# removing the first column
+import pandas as pd
+dataset['date_time'] = pd.to_datetime(dataset['date_time'])
+dataset.date_time = pd.to_datetime(dataset.date_time)
+dataset.set_index('date_time', inplace=True)
+dataset.drop(dataset.columns[[0]], axis=1, inplace=True)
+# save to file
+dataset.to_csv('marsaxlokk.csv')
+values = dataset.values
+# ensure all data is float
+values = values.astype('float32')
+# normalize features
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled = scaler.fit_transform(values)
+# specify the number of lag minutes
+#Feature Selection based on Mutual Information
+n_minutes =15   #number of prior minutes which are going to be taken into consideration
+n_features = 4   #number of variables which are present in the dataset 
+# frame as supervised learning
+reframed = series_to_supervised(scaled, n_ minutes, 1)  #1 output variable
+print(reframed.shape)
+# split into train and test sets
+values = reframed.values
+n_train_ minutes =1538978
+train = values[:n_train_ minutes, :] 
+test = values[n_train_ minutes:, :]
+# split into input and outputs
+n_obs = n_ minutes * n_features   
+train_X, train_y = train[:, :n_obs], train[:, -n_features] 
+test_X, test_y = test[:, :n_obs], test[:, -n_features]
+print(train_X.shape, len(train_X), train_y.shape)
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
+import matplotlib.pyplot as plt
+from sklearn.feature_selection import mutual_info_regression 
+# feature selection using mutual information
+f_selector = SelectKBest(score_func=mutual_info_regression, k='all')
+# learn relationship from training data
+f_selector.fit(train_X, train_y)
+# transform train input data
+X_train_fs = f_selector.transform(train_X)
+# transform test input data
+X_test_fs = f_selector.transform(test_X)
+# Plot the scores for the features
+plt.bar([i for i in range(len(f_selector.scores_))], f_selector.scores_)
+plt.xlabel("feature index")
+plt.ylabel("Estimated MI value")
+plt.show()
+####choosing 10 lags based on the MI scores
+n_ minutes = 10   #number of prior minutes which are going to be taken into consideration
+n_features = 4   #number of variables which are present in the dataset 
+# frame as supervised learning
+reframed = time_series_to_supervised(scaled,n_ minutes,1)   #the last value represents the number of step ahead forecasts, for this case, prior to calibration, we only need the one step ahead forecasts
+print(reframed.shape)
+# split into train and test sets
+# training portomaso and test 1 month of marsaxlokk data to obtain the calibration parameter
+values = reframed.values
+n_train_ minutes = 1538978   #number of rows which are going to be taken into account for the training set
+train = values[:n_train_ minutes, :] 
+test = values[n_train_ minutes:1579299, :] #testing to obtain the calibration parameter (ranges from 2021-02-19 12:17-2021-03-19 12:17)
+# split into input and outputs
+n_obs = n_ minutes * n_features   #No. of minutes prior * number of variables in the dataset
+train_X, train_y = train[:, :n_obs], train[:, -n_features] 
+test_X, test_y = test[:, :n_obs], test[:, -n_features]
+print(train_X.shape, len(train_X), train_y.shape)
+# reshape input to be 3D [samples, timesteps, features]
+train_X = train_X.reshape((train_X.shape[0], n_ minutes, n_features))
+test_X = test_X.reshape((test_X.shape[0], n_ minutes, n_features))
+print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+# design network
+from keras.models import load_model
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
+from keras.layers import Dropout
+model = Sequential()
+model.add(LSTM(9, input_shape=(train_X.shape[1], train_X.shape[2])))
+model.add(Dense(1))
+model.compile(loss='mse', optimizer='adam')
+es = EarlyStopping(monitor='val_loss', min_delta=4, verbose=1, patience=10)
+# fit network
+history = model.fit(train_X, train_y, epochs=13, batch_size=72, validation_data=(test_X, test_y),verbose=2,callbacks=[es], shuffle=False)
+model.summary()
+# plot history
+pyplot.plot(history.history['loss'], label='train')
+pyplot.plot(history.history['val_loss'], label='test')
+plt.xlim([0, 10])
+plt.ylabel('loss')
+plt.xlabel('epochs')
+pyplot.legend()
+pyplot.show()
+# make a prediction
+yhat = model.predict(test_X)
+test_X = test_X.reshape((test_X.shape[0], n_ minutes *n_features))
+# invert scaling for forecast
+inv_yhat = concatenate((yhat, test_X[:, -3:]), axis=1)
+inv_yhat = scaler.inverse_transform(inv_yhat)
+inv_yhat = inv_yhat[:,0]
+# invert scaling for actual
+test_y = test_y.reshape((len(test_y), 1))
+inv_y = concatenate((test_y, test_X[:, -3:]), axis=1)
+inv_y = scaler.inverse_transform(inv_y)
+inv_y = inv_y[:,0]
+# calculate RMSE
+rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
+print('Test RMSE: %.3f' % rmse)
+from sklearn.metrics import mean_absolute_error
+MAE = mean_absolute_error(inv_y, inv_yhat)
+print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
+
+#obtaining the calibration parameters
+import numpy as np
+import pandas as pd 
+import seaborn as sns
+import matplotlib.pyplot as plt
+import statsmodels.formula.api as smf 
+import statsmodels.api as sm
+from statsmodels.graphics.gofplots import ProbPlot
+X = inv_yhat  # independent variable
+y = inv_y
+X = sm.add_constant(X)
+#fit linear regression model
+fit = sm.OLS(y, X).fit()
+fit.params
+#view model summary
+print(fit.summary())
+# calculate akaike information criterion for a linear regression model
+from math import log
+predlinreg=inv_yhat*fit.params[1]+(fit.params[0])
+mse = (mean_squared_error(inv_y, predlinreg))
+from sklearn.metrics import r2_score  
+R_square = r2_score(inv_y, predlinreg) 
+print('Coefficient of Determination', R_square) 
+# number of parameters
+num_params = len(fit.params) + 1
+print('Number of parameters: %d' % (num_params))
+def calculate_aic(n, mse, num_params):
+ aic = n * log(mse) + 2 * num_params
+ return aic
+aic = calculate_aic(len(y), mse, num_params)
+print('AIC: %.3f' % aic)
+def calculate_bic(n, mse, num_params):
+ bic = n * log(mse) + num_params * log(n)
+ return bic
+# calculate the bic
+bic = calculate_bic(len(y), mse, num_params)
+print('BIC: %.3f' % bic)
+#fitting the weighted least squares model
+reg = sm.OLS(y, X).fit()
+reg.resid
+print(reg.summary())
+yw = reg.predict(X)
+ww=sm.OLS(abs(reg.resid),yw).fit()
+wwfitted=ww.predict(yw)
+w1=1/((wwfitted))**2
+mod_wls = sm.WLS(y,X,weights=w1)
+mod_res = mod_wls.fit()
+print(mod_res.summary())
+mod_res.params
+predwls=inv_yhat*mod_res.params[1]+(mod_res.params[0])
+rmse = sqrt(mean_squared_error(inv_y, predwls))
+print('Test RMSE: %.3f' % rmse)
+from sklearn.metrics import r2_score  
+R_square = r2_score(inv_y, predwls) 
+print('Coefficient of Determination', R_square) 
+
+# calculate akaike information criterion for a weighted linear regression model
+from math import log
+predwls=inv_yhat+(mod_res.params[0])
+mse = (mean_squared_error(inv_y, predwls))
+# number of parameters
+num_params = len(mod_res.params) + 1
+print('Number of parameters: %d' % (num_params))
+def calculate_aic(n, mse, num_params):
+ aic = n * log(mse) + 2 * num_params
+ return aic
+aic = calculate_aic(len(y), mse, num_params)
+print('AIC: %.3f' % aic)
+def calculate_bic(n, mse, num_params):
+ bic = n * log(mse) + num_params * log(n)
+ return bic
+# calculate the bic
+bic = calculate_bic(len(y), mse, num_params)
+print('BIC: %.3f' % bic)
+
+
+#retraining the model with portomaso values calibrated
+dataset['normsealevel'][:1538978]=(np.array(dataset['normsealevel'][:1538978])*fit.params[1])+fit.params[0]
+values = dataset.values
+# ensure all data is float
+values = values.astype('float32')
+# normalize features
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled = scaler.fit_transform(values)
+# specify the number of lag minutes
+n_minutes = 10   #number of prior minutes which are going to be taken into consideration
+n_features = 4   #number of variables which are present in the dataset 
+# frame as supervised learning
+reframed = time_series_to_supervised(scaled,n_minutes,1)   #vary last term to 1,5,10,20 step ahead forecasts
+print(reframed.shape)
+# split into train and test sets
+# training portomaso and test 1 month of marsaxlokk data to obtain the calibration parameter
+values = reframed.values
+n_train_minutes = 1579299  #number of rows which are going to be taken into account for the training set, includes the calibration period
+train = values[:n_train_minutes, :] 
+test = values[n_train_minutes:, :] #testing on the remaining Marsaxlokk data (without calibration period)
+# split into input and outputs
+n_obs = n_minutes * n_features  
+train_X, train_y = train[:, :n_obs], train[:, -n_features] 
+test_X, test_y = test[:, :n_obs], test[:, -n_features]
+print(train_X.shape, len(train_X), train_y.shape)
+# reshape input to be 3D [samples, timesteps, features]
+train_X = train_X.reshape((train_X.shape[0], n_minutes, n_features))
+test_X = test_X.reshape((test_X.shape[0], n_minutes, n_features))
+print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+# design network
+from keras.models import load_model
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
+from keras.layers import Dropout
+model = Sequential()
+model.add(LSTM(10, input_shape=(train_X.shape[1], train_X.shape[2])))
+model.add(Dense(1))
+model.compile(loss='mse', optimizer='adam')
+es = EarlyStopping(monitor='val_loss', min_delta=4, verbose=1, patience=10)
+# fit network
+history = model.fit(train_X, train_y, epochs=15, batch_size=72, validation_data=(test_X, test_y),verbose=2,callbacks=[es], shuffle=False)
+model.summary()
+# plot history
+pyplot.plot(history.history['loss'], label='train')
+pyplot.plot(history.history['val_loss'], label='test')
+plt.xlim([0, 10])
+plt.ylabel('loss')
+plt.xlabel('epochs')
+pyplot.legend()
+pyplot.show()
+
+# make a prediction
+yhat = model.predict(test_X)
+test_X = test_X.reshape((test_X.shape[0], n_minutes*n_features))
+# invert scaling for forecast
+inv_yhat = concatenate((yhat, test_X[:, -3:]), axis=1)
+inv_yhat = scaler.inverse_transform(inv_yhat)
+inv_yhat = inv_yhat[:,0]
+# invert scaling for actual
+test_y = test_y.reshape((len(test_y), 1))
+inv_y = concatenate((test_y, test_X[:, -3:]), axis=1)
+inv_y = scaler.inverse_transform(inv_y)
+inv_y = inv_y[:,0]
+# calculate RMSE
+rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
+print('Test RMSE: %.3f' % rmse)
+from sklearn.metrics import mean_absolute_error,mean_absolute_percentage_error
+MAE = mean_absolute_error(inv_y, inv_yhat)
+MAE
+print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
+mape = mean_absolute_percentage_error(inv_y, inv_yhat)
+
+##WITH SEA 20MIN ROLLING VARIANCE AS A FEATURE EXTRACTION
+dataset = pd.read_csv("C:/Users/Nicole/OneDrive/Desktop/normalizeddataportomarsaxlokkwsearollvar.csv",parse_dates=['date_time'])
+import pandas as pd
+dataset['date_time'] = pd.to_datetime(dataset['date_time'])
+dataset.date_time = pd.to_datetime(dataset.date_time)
+dataset.set_index('date_time', inplace=True)
+dataset.drop(dataset.columns[[0,1]], axis=1, inplace=True)
+values = dataset.values
+# ensure all data is float
+values = values.astype('float32')
+# normalize features
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled = scaler.fit_transform(values)
+# specify the number of lag minutes
+n_minutes = 10   #number of prior minutes which are going to be taken into consideration
+n_features = 5   #number of variables which are present in the dataset 
+# frame as supervised learning
+reframed = time_series_to_supervised(scaled,n_minutes,1)   #vary the last value to 1,5,10,20 to obtain the one, five, ten and twenty step ahead forecasts 
+# split into train and test sets
+values = reframed.values
+n_train_minutes = 1579299 
+train = values[:n_train_minutes, :]
+test = values[n_train_minutes:, :] 
+# split into input and outputs
+n_obs = n_minutes * n_features   
+train_X, train_y = train[:, :n_obs], train[:, -n_features] 
+test_X, test_y = test[:, :n_obs], test[:, -n_features]
+print(train_X.shape, len(train_X), train_y.shape)
+# reshape input to be 3D [samples, timesteps, features]
+train_X = train_X.reshape((train_X.shape[0], n_minutes, n_features))
+test_X = test_X.reshape((test_X.shape[0], n_minutes, n_features))
+print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+# design network
+from keras.models import load_model
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
+from keras.layers import Dropout
+model = Sequential()
+model.add(LSTM(10, input_shape=(train_X.shape[1], train_X.shape[2])))
+#model.add(Dropout(0.2))
+model.add(Dense(1))
+model.compile(loss='mse', optimizer='adam')
+es = EarlyStopping(monitor='val_loss', min_delta=4, verbose=1, patience=10)
+# fit network
+history = model.fit(train_X, train_y, epochs=15, batch_size=72, validation_data=(test_X, test_y),verbose=2,callbacks=[es], shuffle=False)
+model.summary()
+# plot history
+pyplot.plot(history.history['loss'], label='train')
+pyplot.plot(history.history['val_loss'], label='test')
+plt.xlim([0, 10])
+plt.ylabel('loss')
+plt.xlabel('epochs')
+pyplot.legend()
+pyplot.show()
+# make a prediction
+yhat = model.predict(test_X)
+test_X = test_X.reshape((test_X.shape[0], n_minutes*n_features))
+# invert scaling for forecast
+inv_yhat = concatenate((yhat, test_X[:, -4:]), axis=1)
+inv_yhat = scaler.inverse_transform(inv_yhat)
+inv_yhat = inv_yhat[:,0]
+# invert scaling for actual
+test_y = test_y.reshape((len(test_y), 1))
+inv_y = concatenate((test_y, test_X[:, -4:]), axis=1)
+inv_y = scaler.inverse_transform(inv_y)
+inv_y = inv_y[:,0]
+# calculate RMSE
+rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
+print('Test RMSE: %.3f' % rmse)
+from sklearn.metrics import mean_absolute_error
+MAE = mean_absolute_error(inv_y, inv_yhat)
+MAE
+print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
+mape = mean_absolute_percentage_error(inv_y, inv_yhat)
+
+
+#Python Code used to apply the LSTM model to obtain forecasts for Case 2: Using Marsaxlokk only
+# load dataset
+def parser(x):
+	return datetime.strptime('202'+x, '%Y-%m')
+dataset = pd.read_csv("C:/Users/Nicole/OneDrive/Desktop/completegapfilledMarsaxlokk2beused.csv",parse_dates=['date_time'])
+# removing the first column
+import pandas as pd
+dataset['date_time'] = pd.to_datetime(dataset['date_time'])
+dataset.date_time = pd.to_datetime(dataset.date_time)
+dataset.set_index('date_time', inplace=True)
+dataset.drop(dataset.columns[[0,1]], axis=1, inplace=True)
+# summarize first 5 rows
+print(dataset.head(5))
+# save to file
+dataset.to_csv('marsaxlokk.csv')
+values = dataset.values
+from sklearn import preprocessing
+import numpy as np
+values = dataset.values
+# ensure all data is float
+values = values.astype('float32')
+# normalize features
+scaler = MinMaxScaler()
+scaled = scaler.fit_transform(values)
+# specify the number of lag minutes
+#Feature Selection based on Mutual Information
+n_minutes =15   #number of prior minutes which are going to be taken into consideration
+n_features = 8   #number of variables which are present in the dataset 
+# frame as supervised learning
+reframed = series_to_supervised(scaled, n_minutes, 1)  #1 output variable
+print(reframed.shape)
+# split into train and test sets
+values = reframed.values
+n_train_minutes =388835 
+train = values[:n_train_minutes, :] 
+test = values[n_train_minutes:, :]
+# split into input and outputs
+n_obs = n_minutes * n_features   
+train_X, train_y = train[:, :n_obs], train[:, -n_features] 
+test_X, test_y = test[:, :n_obs], test[:, -n_features]
+print(train_X.shape, len(train_X), train_y.shape)
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
+import matplotlib.pyplot as plt
+from sklearn.feature_selection import mutual_info_regression 
+
+# feature selection using mutual information
+f_selector = SelectKBest(score_func=mutual_info_regression, k='all')
+# learn relationship from training data
+f_selector.fit(train_X, train_y)
+# transform train input data
+X_train_fs = f_selector.transform(train_X)
+# transform test input data
+X_test_fs = f_selector.transform(test_X)
+# Plot the scores for the features
+plt.bar([i for i in range(len(f_selector.scores_))], f_selector.scores_)
+plt.xlabel("feature index")
+plt.ylabel("Estimated MI value")
+plt.show()
+
+####choosing 10 lags based on the MI scores
+n_minutes = 10  #number of prior minutes which are going to be taken into consideration
+n_features = 8   #number of variables which are present in the dataset 
+# frame as supervised learning
+reframed = time_series_to_supervised(scaled,n_minutes,1)  # last value: 1,5,10,20 step ahead forecast
+print(reframed.shape)
+# split into train and test sets
+values = reframed.values
+n_train_minutes =388835 #50% training  #first 50% number of rows which are going to be taken into account for the training set
+train = values[:n_train_minutes, :] 
+test = values[n_train_minutes:, :]
+# split into input and outputs
+n_obs = n_minutes * n_features   
+train_X, train_y = train[:, :n_obs], train[:, -n_features] 
+test_X, test_y = test[:, :n_obs], test[:, -n_features]
+print(train_X.shape, len(train_X), train_y.shape)
+# reshape input to be 3D [samples, timesteps, features]
+train_X = train_X.reshape((train_X.shape[0], n_minutes, n_features))
+test_X = test_X.reshape((test_X.shape[0], n_minutes, n_features))
+print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+from keras.layers import Dropout
+# design network
+model = Sequential()
+model.add(LSTM(17, input_shape=(train_X.shape[1], train_X.shape[2]))) #lstm with time steps
+model.add(Dense(1))
+model.compile(loss='mse', optimizer='adam')
+from keras.layers import Dense
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+from matplotlib import pyplot
+from keras.models import load_model
+es = EarlyStopping(monitor='val_loss', min_delta=4, verbose=1, patience=15)
+history = model.fit(train_X, train_y, epochs=20, batch_size=72, validation_data=(test_X, test_y),verbose=2,callbacks=[es],shuffle=False)
+model.summary()
+# make a prediction
+yhat = model.predict(test_X)
+test_X = test_X.reshape((test_X.shape[0], n_minutes*n_features))
+# invert scaling for forecast
+inv_yhat = concatenate((yhat, test_X[:, -7:]), axis=1)
+inv_yhat = scaler.inverse_transform(inv_yhat)
+inv_yhat = inv_yhat[:,0]
+# invert scaling for actual
+test_y = test_y.reshape((len(test_y), 1))
+inv_y = concatenate((test_y, test_X[:, -7:]), axis=1)
+inv_y = scaler.inverse_transform(inv_y)
+inv_y = inv_y[:,0]
+# calculate RMSE
+rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
+print('Test RMSE: %.3f' % rmse)
+from sklearn.metrics import mean_absolute_error
+MAE = mean_absolute_error(inv_y, inv_yhat)
+MAE
+print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
+mape = mean_absolute_percentage_error(inv_y, inv_yhat)
