@@ -1191,11 +1191,8 @@ f_selector.fit(train_X, train_y)
 X_train_fs = f_selector.transform(train_X)
 # transform test input data
 X_test_fs = f_selector.transform(test_X)
-# Plot the scores for the features
-plt.bar([i for i in range(len(f_selector.scores_))], f_selector.scores_)
-plt.xlabel("feature index")
-plt.ylabel("Estimated MI value")
-plt.show()
+# Obtaining the scores for the features
+f_selector.scores_
 
 #Determining the requirement of calibration based on the Uncalibrated LSTM model
 n_ minutes = 10   #number of prior minutes which are going to be taken into consideration
@@ -1606,11 +1603,8 @@ f_selector.fit(train_X, train_y)
 X_train_fs = f_selector.transform(train_X)
 # transform test input data
 X_test_fs = f_selector.transform(test_X)
-# Plot the scores for the features
-plt.bar([i for i in range(len(f_selector.scores_))], f_selector.scores_)
-plt.xlabel("feature index")
-plt.ylabel("Estimated MI value")
-plt.show()
+# Obtaining the scores for the features
+f_selector.scores_
 
 ####choosing up to 10 lags based on the MI scores
 n_minutes = 10  #number of prior minutes which are going to be taken into consideration
