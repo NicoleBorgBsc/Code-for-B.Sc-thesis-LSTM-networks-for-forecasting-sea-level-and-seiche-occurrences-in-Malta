@@ -1061,7 +1061,7 @@ completegapfilledPortomaso$normsealevelrollvar<-roll_var(completegapfilledPortom
 completegapfilledMarsaxlokk $FULLSealevel2<-roll_var(completegapfilledMarsaxlokk $FULLSealevel2,width=20)
 
 
-#Python Code used to apply the LSTM model to obtain forecasts for Case 1
+#Python Code used to apply the LSTM model to obtain forecasts for Case 1: Uncalibrated LSTM model
 
 from math import sqrt
 from numpy import concatenate
@@ -1404,7 +1404,7 @@ MAE
 print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
 mape = mean_absolute_percentage_error(inv_y, inv_yhat)
 
-##WITH SEA 20MIN ROLLING VARIANCE AS A FEATURE EXTRACTION
+##Calibrated LSTM model With SEA 20MIN ROLLING VARIANCE as an additional variable
 dataset = pd.read_csv("C:/Users/Nicole/OneDrive/Desktop/normalizeddataportomarsaxlokkwsearollvar.csv",parse_dates=['date_time'])
 import pandas as pd
 dataset['date_time'] = pd.to_datetime(dataset['date_time'])
@@ -1443,7 +1443,6 @@ from keras.callbacks import EarlyStopping
 from keras.layers import Dropout
 model = Sequential()
 model.add(LSTM(10, input_shape=(train_X.shape[1], train_X.shape[2])))
-#model.add(Dropout(0.2))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 es = EarlyStopping(monitor='val_loss', min_delta=4, verbose=1, patience=10)
@@ -1480,7 +1479,7 @@ print(f'Median Absolute Error (MAE): {np.round(MAE, 2)}')
 mape = mean_absolute_percentage_error(inv_y, inv_yhat)
 
 
-#Python Code used to apply the LSTM model to obtain forecasts for Case 2: Using Marsaxlokk only
+#Python Code used to apply the LSTM model to obtain forecasts for Case 2: Using Marsaxlokk only first 50% of Marsaxlokk training and remaining 50% of Marsaxlokk for testing
 # load dataset
 def parser(x):
 	return datetime.strptime('202'+x, '%Y-%m')
@@ -1599,7 +1598,7 @@ mape = mean_absolute_percentage_error(inv_y, inv_yhat)
 
 
 
-#Python Code used to apply the LSTM model to obtain forecasts for Case 2: Using Marsaxlokk only with additional sea rolling variance
+#Python Code used to apply the LSTM model to obtain forecasts for Case 2: Using Marsaxlokk only with additional 20minute sea rolling variance
 # load dataset
 def parser(x):
 	return datetime.strptime('202'+x, '%Y-%m')
@@ -1697,3 +1696,34 @@ from sklearn.metrics import mean_absolute_error
 MAE = mean_absolute_error(inv_y, inv_yhat)
 MAE
 mape = mean_absolute_percentage_error(inv_y, inv_yhat)
+
+#Additional plots
+#plots of the differences among the acutal and predicted values
+difference=((inv_y))-inv_yhat
+pyplot.plot(difference, label='difference among actual and predicted')  #seiche event november 2021
+plt.xlim([363801,367301])
+plt.ylim([-0.3,3.5])
+plt.ylabel('sea level')
+plt.xlabel('time interval')
+pyplot.legend()
+pyplot.show()
+pyplot.plot(difference, label='difference among actual and predicted')  #seiche event 30th june 2022
+plt.xlim([671679,675179])
+plt.ylim([-0.3,3.5])
+plt.ylabel('sea level')
+plt.xlabel('time interval')
+pyplot.legend()
+pyplot.show()
+
+#rolling variance of the predicted values
+window = 20  # size of the window
+A =inv_yhat
+Aw = np.lib.stride_tricks.sliding_window_view(A, window)
+Avar = np.var(Aw, axis=-1)
+Avar
+pyplot.plot(Avar, label='20 min rolling variance for the predicted values') 
+plt.ylabel('rolling variance for sea level')
+plt.xlabel('time interval')
+pyplot.legend()
+pyplot.show()
+
