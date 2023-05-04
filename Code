@@ -352,7 +352,6 @@ FinalgapfilledMarsaxlokkMeteo$date_time<- strptime(FinalgapfilledMarsaxlokkMeteo
 FinalgapfilledMarsaxlokkMeteo$date_time<- as.POSIXct(FinalgapfilledMarsaxlokkMeteo$date_time)
 
 #Gap filling Marsaxlokk Sea Level variable
-#data from 2022-02-19 12:17 till 2022-05-15 12:28
 library(readr)
 library(imputeTS)
 library(forecast)
@@ -436,13 +435,13 @@ fitss
 chunck$new<-fitss[1]+fitss[2]*chunck$Fullatmp+fitss[3]*chunck$Fullairtemp+fitss[4]*chunck$v+fitss[5]*chunck$Fullhumidity+fitss[6]*chunck$Fullwgust+fitss[7]*chunck$Estimated+yt
 
 #second gap
-#another gap data from 2022-05-13 13:55 till 2022-06-21 13:54
+#
 library(readr)
 library(imputeTS)
 library(forecast)
 FinalgapfilledMarsaxlokkMeteo <- read_csv("C:/Users/Nicole/OneDrive/Desktop/FinalgapfilledMarsaxlokkMeteo.csv")
 View(FinalgapfilledMarsaxlokkMeteo)
-chunck2<-as.data.frame(FinalgapfilledMarsaxlokkMeteo[645159:701318,-1])  #645159:701318
+chunck2<-as.data.frame(FinalgapfilledMarsaxlokkMeteo[645159:701318,-1])  
 plot(chunck2$date_time,chunck2$h1,type='l')
 #obtaining the predicted tidal component
 library(SWMPr)
@@ -885,6 +884,7 @@ port1$mmpred<-ff[1]+ff[2]*port1$atm_press+ff[3]*port1$air_temp+ff[4]*port1$fullt
 port1$fillsea<-ifelse(is.na(port1$h1),port1$mmpred, c(port1$h1,port1$mmpred))
 write.csv(as.data.frame(port1),"C:/Users/Nicole/OneDrive/Desktop/port1.csv")
 port1<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port1.csv")
+
 #focusing on the second and third gaps: T4: 2018-01-01 00:00:00 till 2018-01-05 16:39:00, T5: 2018-01-14 04:40:00 till 2018-01-23 20:20:00
 plot(newportomasohighres$date_time[170000:210000],newportomasohighres$h1[170000:210000],type='l')
 port2<-newportomasohighres[170000:210000,]  #ranging from 2017-11-22 07:44 till 2018-01-26 19:44
@@ -925,6 +925,7 @@ port2$mmpred<-ff[1]+ff[2]*port2$atm_press+ff[3]*port2$air_temp+ff[4]*port2$fullt
 port2$fillsea<-ifelse(is.na(port2$h1),port2$mmpred, c(port2$h1,port2$mmpred))
 write.csv(as.data.frame(port2),"C:/Users/Nicole/OneDrive/Desktop/port2.csv")
 port2<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port2.csv")
+
 #focusing on the T6: 2018-06-08 16:44:00 till 2018-06-12 11:14:00
 port3<-newportomasohighres[220000:240000,] #data ranging from 2018-04-24 03:24 till 2018-07-09 12:44
 portotide <- as.sealevel(elevation = (port3$h1), time = port3$date_time)
@@ -962,6 +963,7 @@ plot(port3$fillsea,type='l')
 write.csv(as.data.frame(port3),"C:/Users/Nicole/OneDrive/Desktop/port3.csv")
 port3<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port3.csv")
 View(port3)
+
 #focusing on the T7 gap: 2019-01-01 23:20:00 till 2019-01-03 08:40:00 
 port4<-newportomasohighres[470000:560000,] #ranging from 2018-12-17 01:04 till 2019-01-30 18:24
 portotide <- as.sealevel(elevation = (port4$h1), time = port4$date_time)
@@ -998,6 +1000,7 @@ port4$fillsea<-ifelse(is.na(port4$h1),port4$mmpred, c(port4$h1,port4$mmpred))
 write.csv(as.data.frame(port4),"C:/Users/Nicole/OneDrive/Desktop/port4.csv")
 port4<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port4.csv")
 View(port4)
+
 # focusing on the T8 gap: 2019-07-21 10:20:00 till 2019-07-29 18:20:00
 port5<-newportomasohighres[578000:600000,] #ranging from 2019-06-13 07:24 till 2019-08-30 04:44.
 portotide <- as.sealevel(elevation = (port5$h1), time = port5$date_time)
