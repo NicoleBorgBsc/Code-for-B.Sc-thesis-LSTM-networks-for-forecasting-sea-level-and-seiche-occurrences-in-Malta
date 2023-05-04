@@ -138,8 +138,8 @@ fit3 <- tslm(atm_press.x ~ atm_press,data=ts(combfull))
 fitt.c <- coef(fit3)
 fitt.c
 summary(fit3)
-combfull$predDelimara <- fit.c[1] + fit.c[2]*combfull$atm_press.y#+mse(fit2)
-combfull$predKordin <- fitt.c[1] + fitt.c[2]*combfull$atm_press#+mse(fit3)
+combfull$predDelimara <- fit.c[1] + fit.c[2]*combfull$atm_press.y
+combfull$predKordin <- fitt.c[1] + fitt.c[2]*combfull$atm_press
 cototal <- combfull %>%
   mutate( 
     atmpresstotalD  = ifelse(is.na(atm_press.x), c(predKordin,predDelimara), c(atm_press.x,predKordin,predDelimara)),
@@ -749,7 +749,7 @@ newportomasohighres$date_time<- as.POSIXct(newportomasohighres$date_time)
 newportomasohighres$air_temp2017<-ifelse(is.na(newportomasohighres$air_temp),newdata2017$Fullair_temp, c(newportomasohighres$air_temp,newdata2017$Fullair_temp ))
 View(newportomasohighres)
 data2018<-newportomasohighres[527136:1052735,]
-data2018<-as.data.frame(data2018)  #527135
+data2018<-as.data.frame(data2018)  
 # Formatting the data in a proper way
 data2018$date_time<- strptime(data2018$date_time, "%Y-%m-%d %H:%M:%S")
 data2018$date_time<- as.POSIXct(data2018$date_time)
