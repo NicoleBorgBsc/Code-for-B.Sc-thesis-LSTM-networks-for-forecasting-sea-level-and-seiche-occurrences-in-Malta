@@ -1419,9 +1419,8 @@ n_features = 4   #number of variables which are present in the dataset
 reframed = time_series_to_supervised(scaled,n_minutes,1)   #vary last term to 1,5,10,20 step ahead forecasts
 print(reframed.shape)
 # split into train and test sets
-# training portomaso and test 1 month of marsaxlokk data to obtain the calibration parameter
 values = reframed.values
-n_train_minutes = 1579299  #number of rows which are going to be taken into account for the training set, includes the calibration period
+n_train_minutes = 1579299  #number of rows which are going to be taken into account for the training set
 train = values[:n_train_minutes, :] 
 test = values[n_train_minutes:, :] #testing on the remaining Marsaxlokk data (without calibration period)
 # split into input and outputs
