@@ -1,3 +1,4 @@
+#R code
 #Gap filling the Marsaxlokk Meteorological Variables through the use of the Kordin or Delimara datasets.
 # loading the marsaxlokk dataset
 library(tidyverse)
@@ -1694,10 +1695,10 @@ values = values.astype('float32')
 scaler = MinMaxScaler()
 scaled = scaler.fit_transform(values)
 # specify the number of lag hours
-n_hours = 10  #number of prior hours which are going to be taken into consideration
+n_minutes = 10  #number of prior minutes which are going to be taken into consideration
 n_features = 9   #number of variables which are present in the dataset 
 # frame as supervised learning
-reframed = time_series_to_supervised(scaled,n_hours,1)  # last value: 1,5,10 step ahead forecast
+reframed = time_series_to_supervised(scaled,n_minutes,1)  # last value: 1,5,10 step ahead forecast
 print(reframed.shape)
  
 # split into train and test sets
@@ -1706,7 +1707,7 @@ n_train_minutes =388835 #50% training  #number of rows which are going to be tak
 train = values[:n_train_minutes, :] 
 test = values[n_train_minutes:, :]
 # split into input and outputs
-n_obs = n_hours * n_features  
+n_obs = n_minutes * n_features  
 train_X, train_y = train[:, :n_obs], train[:, -n_features] 
 #train[:, -n_features]  
 test_X, test_y = test[:, :n_obs], test[:, -n_features]
