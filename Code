@@ -852,7 +852,7 @@ View(newportomasohighres)
 #focusing on gap filling the sea level variable #through multiple linear regression
 #focusing on the first gap: 2017-05-11 08:07:00 till 2017-05-16 00:54:00
 library(forecast)
-port1<-newportomasohighres[138260:212540,]  #ranging from 2017-04-29 01:00:00 till 2017-05-26 19:40:00
+port1<-newportomasohighres[138260:212540,]  
 portotide <- as.sealevel(elevation = (port1$h1), time = port1$date_time)
 mods <- tidem(t = portotide )
 # AIC analysis
@@ -888,7 +888,7 @@ port1<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port1.csv")
 
 #focusing on the second and third gaps: T4: 2018-01-01 00:00:00 till 2018-01-05 16:39:00, T5: 2018-01-14 04:40:00 till 2018-01-23 20:20:00
 plot(newportomasohighres$date_time[170000:210000],newportomasohighres$h1[170000:210000],type='l')
-port2<-newportomasohighres[170000:210000,]  #ranging from 2017-11-22 07:44 till 2018-01-26 19:44
+port2<-newportomasohighres[170000:210000,]  
 library(SWMPr)
 library(oce)
 portotide <- as.sealevel(elevation = (port2$h1), time = port2$date_time)
@@ -928,7 +928,7 @@ write.csv(as.data.frame(port2),"C:/Users/Nicole/OneDrive/Desktop/port2.csv")
 port2<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port2.csv")
 
 #focusing on the T6: 2018-06-08 16:44:00 till 2018-06-12 11:14:00
-port3<-newportomasohighres[220000:240000,] #data ranging from 2018-04-24 03:24 till 2018-07-09 12:44
+port3<-newportomasohighres[220000:240000,] 
 portotide <- as.sealevel(elevation = (port3$h1), time = port3$date_time)
 mods <- tidem(t = portotide )
 # AIC analysis
@@ -966,7 +966,7 @@ port3<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port3.csv")
 View(port3)
 
 #focusing on the T7 gap: 2019-01-01 23:20:00 till 2019-01-03 08:40:00 
-port4<-newportomasohighres[470000:560000,] #ranging from 2018-12-17 01:04 till 2019-01-30 18:24
+port4<-newportomasohighres[470000:560000,] 
 portotide <- as.sealevel(elevation = (port4$h1), time = port4$date_time)
 mods <- tidem(t = portotide )
 # AIC analysis
@@ -1003,7 +1003,7 @@ port4<- read.csv("C:/Users/Nicole/OneDrive/Desktop/port4.csv")
 View(port4)
 
 # focusing on the T8 gap: 2019-07-21 10:20:00 till 2019-07-29 18:20:00
-port5<-newportomasohighres[578000:600000,] #ranging from 2019-06-13 07:24 till 2019-08-30 04:44.
+port5<-newportomasohighres[578000:600000,] 
 portotide <- as.sealevel(elevation = (port5$h1), time = port5$date_time)
 mods <- tidem(t = portotide )
 # AIC analysis
@@ -1062,7 +1062,7 @@ View(completegapfilledPortomaso)
 #Obtaining the 20 minute rolling variance of the sea level variable
 library(roll)
 completegapfilledPortomaso$normsealevelrollvar<-roll_var(completegapfilledPortomaso$newh1,width=20)
-completegapfilledMarsaxlokk $FULLSealevel2<-roll_var(completegapfilledMarsaxlokk $FULLSealevel2,width=20)
+completegapfilledMarsaxlokk$FULLSealevel2sealevelroll<-roll_var(completegapfilledMarsaxlokk$FULLSealevel2,width=20)
 
 
 #Python Code for the Uncalibrated LSTM model
